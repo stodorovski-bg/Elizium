@@ -25,6 +25,14 @@
     return (Math.round(Number(n) || 0)).toLocaleString("bg-BG");
   }
 
+  // Съставя етикет за апартамента: блок/вход/апартамент (само непразните части)
+  function aptLabel(block, entrance, apartment) {
+    return [block, entrance, apartment]
+      .map(function (s) { return String(s || "").trim(); })
+      .filter(function (s) { return s !== ""; })
+      .join("/");
+  }
+
   function animateCount(el, to, formatter) {
     if (!el) return;
     var from = 0;
@@ -88,6 +96,41 @@
     if (amountInput) amountInput.addEventListener("input", syncChips);
   }
 
+  // ------------------------------------------------------- display sub-options
+  function currentAptLabel() {
+    return aptLabel(
+      $("#f-block") ? $("#f-block").value : "",
+      $("#f-entrance") ? $("#f-entrance").value : "",
+      $("#f-apartment") ? $("#f-apartment").value : ""
+    );
+  }
+
+  function updateAptPreview() {
+    var el = $("#display-apt-preview");
+    if (!el) return;
+    var label = currentAptLabel();
+    el.textContent = label ? "(напр. " + label + ")" : "";
+  }
+
+  function toggleDisplayOptions() {
+    var box = $("#display-options");
+    if (!box) return;
+    var isPublic = (document.querySelector('input[name="visibility"]:checked') || {}).value !== "anonymous";
+    box.hidden = !isPublic;
+  }
+
+  function initDisplayOptions() {
+    ["f-block", "f-entrance", "f-apartment"].forEach(function (id) {
+      var el = $("#" + id);
+      if (el) el.addEventListener("input", updateAptPreview);
+    });
+    $all('input[name="visibility"]').forEach(function (r) {
+      r.addEventListener("change", toggleDisplayOptions);
+    });
+    updateAptPreview();
+    toggleDisplayOptions();
+  }
+
   // ----------------------------------------------------------------- stats load
   function renderStats(total, count) {
     total = Number(total) || 0;
@@ -112,7 +155,9 @@
   }
 
   function initials(name) {
-    var parts = String(name).trim().split(/\s+/);
+    var parts = String(name).trim().split(/\s+/).filter(function (w) {
+      return /^\p{L}/u.test(w); // само думи, започващи с буква (пропуска „·", числа и т.н.)
+    });
     var s = (parts[0] ? parts[0][0] : "") + (parts[1] ? parts[1][0] : "");
     return (s || "•").toUpperCase();
   }
@@ -137,7 +182,7 @@
 
       var avatar = document.createElement("span");
       avatar.className = "participants__avatar";
-      avatar.textContent = initials(r.name);
+      avatar.textContent = r.kind === "apartment" ? "🏠" : initials(r.name);
 
       var nameText = document.createElement("span");
       nameText.textContent = r.name;
@@ -189,7 +234,6 @@
   function validate(data) {
     var invalid = [];
     if (!data.block) invalid.push("f-block");
-    if (!data.entrance) invalid.push("f-entrance");
     if (!data.apartment) invalid.push("f-apartment");
     if (!(data.amount > 0)) invalid.push("f-amount");
 
@@ -215,9 +259,18 @@
       };
       var visibility = (form.querySelector('input[name="visibility"]:checked') || {}).value || "public";
       var payment = (form.querySelector('input[name="payment"]:checked') || {}).value || null;
+      var display = (form.querySelector('input[name="display"]:checked') || {}).value || "apartment";
 
       if (!validate(data)) {
-        showMessage("error", "Моля, попълнете задължителните полета (блок, вход, апартамент и сума).");
+        showMessage("error", "Моля, попълнете задължителните полета (блок, апартамент и сума).");
+        return;
+      }
+
+      // Ако избере да се показва с име, но не е въвел име
+      if (visibility !== "anonymous" && (display === "name" || display === "both") && !data.name) {
+        var nameEl = $("#f-name");
+        if (nameEl) nameEl.classList.add("is-invalid");
+        showMessage("error", "Моля, въведете име, за да се покаже в списъка — или изберете «Само апартамент».");
         return;
       }
 
@@ -242,6 +295,7 @@
           name: data.name,
           amount: data.amount,
           is_anonymous: visibility === "anonymous",
+          display: display,
           payment_method: payment,
         }),
       })
@@ -256,6 +310,8 @@
             form.reset();
             $("#f-amount").value = RECOMMENDED;
             syncChips();
+            updateAptPreview();
+            toggleDisplayOptions();
             reloadAll();
             var stats = $("#статистика");
             if (stats) stats.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -284,6 +340,7 @@
   function boot() {
     initStaticText();
     initChips();
+    initDisplayOptions();
     initForm();
 
     if (configured) {

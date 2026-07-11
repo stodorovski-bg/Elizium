@@ -146,8 +146,8 @@
               <input id="f-block" name="block" type="text" autocomplete="off" required placeholder="напр. 1" />
             </div>
             <div class="field">
-              <label for="f-entrance">Вход <span class="req">*</span></label>
-              <input id="f-entrance" name="entrance" type="text" autocomplete="off" required placeholder="напр. А" />
+              <label for="f-entrance">Вход <span class="opt">(по избор)</span></label>
+              <input id="f-entrance" name="entrance" type="text" autocomplete="off" placeholder="напр. Г" />
             </div>
             <div class="field">
               <label for="f-apartment">Апартамент <span class="req">*</span></label>
@@ -178,6 +178,23 @@
               <input type="radio" name="visibility" value="public" checked />
               <span>Покажи ме в списъка на съседите, които участват</span>
             </label>
+
+            <div class="subfield" id="display-options">
+              <span class="subfield__label">Как да се покажа в списъка:</span>
+              <label class="radio">
+                <input type="radio" name="display" value="apartment" checked />
+                <span>Блок, вход и апартамент <em class="hint-inline" id="display-apt-preview"></em></span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="display" value="name" />
+                <span>Само име</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="display" value="both" />
+                <span>Име + блок/вход/апартамент</span>
+              </label>
+            </div>
+
             <label class="radio">
               <input type="radio" name="visibility" value="anonymous" />
               <span>Искам да остана анонимен/на</span>
