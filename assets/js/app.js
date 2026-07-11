@@ -193,7 +193,12 @@
 
       var amount = document.createElement("span");
       amount.className = "participants__amount";
-      amount.textContent = fmtMoney(r.amount);
+      if (r.amount === null || r.amount === undefined) {
+        amount.textContent = "—";
+        amount.classList.add("participants__amount--hidden");
+      } else {
+        amount.textContent = fmtMoney(r.amount);
+      }
 
       li.appendChild(nameWrap);
       li.appendChild(amount);
@@ -235,6 +240,7 @@
   function validate(data) {
     var invalid = [];
     if (!data.block) invalid.push("f-block");
+    if (!data.entrance) invalid.push("f-entrance");
     if (!data.apartment) invalid.push("f-apartment");
     if (!(data.amount > 0)) invalid.push("f-amount");
 
@@ -260,19 +266,21 @@
       };
       var visibility = (form.querySelector('input[name="visibility"]:checked') || {}).value || "public";
       var payment = (form.querySelector('input[name="payment"]:checked') || {}).value || null;
-      var display = (form.querySelector('input[name="display"]:checked') || {}).value || "apartment";
+      var cName = $("#f-show-name") ? $("#f-show-name").checked : true;
+      var cApt = $("#f-show-apartment") ? $("#f-show-apartment").checked : true;
+      var showAmount = $("#f-show-amount") ? $("#f-show-amount").checked : true;
+      var display = (cName && cApt) ? "both" : cName ? "name" : cApt ? "apartment" : "none";
 
       if (!validate(data)) {
-        showMessage("error", "Моля, попълнете задължителните полета (блок, апартамент и сума).");
+        showMessage("error", "Моля, попълнете задължителните полета (блок, вход, апартамент и сума).");
         return;
       }
 
-      // Изискваме име само ако изрично е избрано „Само име".
-      // При „Име + апартамент" без име се показва само адресът (без грешка).
+      // Ако е избрано да се показва само име (без апартамент), но няма въведено име
       if (visibility !== "anonymous" && display === "name" && !data.name) {
         var nameEl = $("#f-name");
         if (nameEl) nameEl.classList.add("is-invalid");
-        showMessage("error", "Моля, въведете име, за да се покаже в списъка — или изберете «Само блок, вход и апартамент».");
+        showMessage("error", "Моля, въведете име — или отметнете и «Блок, вход и апартамент».");
         return;
       }
 
@@ -298,6 +306,7 @@
           amount: data.amount,
           is_anonymous: visibility === "anonymous",
           display: display,
+          show_amount: showAmount,
           payment_method: payment,
         }),
       })

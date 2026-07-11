@@ -23,7 +23,7 @@
  */
 
 var SHEET_NAME = 'Записвания';
-var HEADERS = ['Дата', 'Блок', 'Вход', 'Апартамент', 'Име', 'Сума', 'Анонимно', 'Плащане', 'Показване'];
+var HEADERS = ['Дата', 'Блок', 'Вход', 'Апартамент', 'Име', 'Сума', 'Анонимно', 'Плащане', 'Показване', 'Сума видима'];
 
 /** Връща (и при нужда създава) листа със записванията. */
 function getSheet_() {
@@ -79,12 +79,17 @@ function doGet(e) {
       total += amount;
       count += 1;
 
+      // Дали сумата да се показва публично (по подразбиране – да)
+      var showAmt = String(row[9] || '').trim().toLowerCase();
+      var shownAmount = (showAmt === 'не' || showAmt === 'no' || showAmt === 'false' || showAmt === '0')
+        ? null : amount;
+
       if (isAnonymous_(row[6])) {
-        // Анонимен участник: показваме само етикет и сумата (без име/апартамент)
+        // Анонимен участник: само етикет (без име/апартамент)
         participants.push({
           name: 'Анонимен/на',
           kind: 'anonymous',
-          amount: amount,
+          amount: shownAmount,
           created_at: row[0]
         });
       } else {
@@ -92,28 +97,25 @@ function doGet(e) {
         var apt = aptLabel_(row[1], row[2], row[3]);
         var display = String(row[8] || '').trim().toLowerCase();
 
-        // Обратна съвместимост / резервен вариант:
-        // ако няма избор, показваме име (ако има), иначе апартамент.
-        if (display !== 'name' && display !== 'apartment' && display !== 'both') {
-          display = name ? 'name' : 'apartment';
+        // Обратна съвместимост: ако липсва избор, показваме каквото има.
+        if (['name', 'apartment', 'both', 'none'].indexOf(display) === -1) {
+          display = name ? 'both' : 'apartment';
         }
 
-        var label, kind;
-        if (display === 'apartment' || !name) {
-          label = apt || 'Съсед';
-          kind = 'apartment';
-        } else if (display === 'both') {
-          label = apt ? (name + ' · ' + apt) : name;
-          kind = 'name';
-        } else { // 'name'
-          label = name;
-          kind = 'name';
-        }
+        var wantName = (display === 'name' || display === 'both');
+        var wantApt  = (display === 'apartment' || display === 'both');
+
+        var parts = [];
+        if (wantName && name) parts.push(name);
+        if (wantApt && apt) parts.push(apt);
+
+        var label = parts.join(' · ') || 'Съсед';
+        var kind = (wantName && name) ? 'name' : 'apartment';
 
         participants.push({
           name: label,
           kind: kind,
-          amount: amount,
+          amount: shownAmount,
           created_at: row[0]
         });
       }
@@ -152,10 +154,11 @@ function doPost(e) {
     var payment   = data.payment_method;
     if (payment !== 'revolut' && payment !== 'cash') payment = '';
     var display   = String(data.display || '').trim().toLowerCase();
-    if (display !== 'name' && display !== 'apartment' && display !== 'both') display = 'apartment';
+    if (['name', 'apartment', 'both', 'none'].indexOf(display) === -1) display = 'both';
+    var showAmount = data.show_amount !== false; // по подразбиране видима
 
-    if (!block || !apartment) {
-      return jsonOut_({ status: 'error', message: 'Моля, попълнете блок и апартамент.' });
+    if (!block || !entrance || !apartment) {
+      return jsonOut_({ status: 'error', message: 'Моля, попълнете блок, вход и апартамент.' });
     }
     if (!(amount > 0)) {
       return jsonOut_({ status: 'error', message: 'Моля, въведете валидна сума.' });
@@ -179,7 +182,7 @@ function doPost(e) {
 
     sheet.appendRow([
       new Date(), block, entrance, apartment, name, amount,
-      anonymous ? 'да' : 'не', payment, display
+      anonymous ? 'да' : 'не', payment, display, showAmount ? 'да' : 'не'
     ]);
 
     return jsonOut_({ status: 'ok' });
