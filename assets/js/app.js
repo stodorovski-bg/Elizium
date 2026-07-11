@@ -284,6 +284,19 @@
         return;
       }
 
+      // Потвърждение при по-голяма сума – предпазва от случайно въвеждане
+      if (data.amount > 100) {
+        var confirmed = window.confirm(
+          "Въвеждате сума от " + fmtMoney(data.amount) + ".\n\n" +
+          "Сигурни ли сте, че сумата е правилна?"
+        );
+        if (!confirmed) {
+          var amtEl = $("#f-amount");
+          if (amtEl) amtEl.focus();
+          return;
+        }
+      }
+
       if (!configured) {
         showMessage("warn", "Порталът още не е свързан с база данни. Записването ще е достъпно след настройка (виж README.md).");
         return;
