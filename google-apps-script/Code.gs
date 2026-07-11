@@ -79,7 +79,15 @@ function doGet(e) {
       total += amount;
       count += 1;
 
-      if (!isAnonymous_(row[6])) {
+      if (isAnonymous_(row[6])) {
+        // Анонимен участник: показваме само етикет и сумата (без име/апартамент)
+        participants.push({
+          name: 'Анонимен/на',
+          kind: 'anonymous',
+          amount: amount,
+          created_at: row[0]
+        });
+      } else {
         var name = String(row[4] || '').trim();
         var apt = aptLabel_(row[1], row[2], row[3]);
         var display = String(row[8] || '').trim().toLowerCase();

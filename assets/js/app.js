@@ -182,7 +182,8 @@
 
       var avatar = document.createElement("span");
       avatar.className = "participants__avatar";
-      avatar.textContent = r.kind === "apartment" ? "🏠" : initials(r.name);
+      avatar.textContent = r.kind === "anonymous" ? "👤"
+        : (r.kind === "apartment" ? "🏠" : initials(r.name));
 
       var nameText = document.createElement("span");
       nameText.textContent = r.name;
