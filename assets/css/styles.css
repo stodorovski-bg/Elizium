@@ -134,6 +134,7 @@ a { color: var(--green-600); }
   border: 1.5px solid #f2b705;
   box-shadow: 0 6px 18px rgba(242, 183, 5, .18);
   text-align: left;
+  margin-bottom: 30px;
 }
 .callout--alert strong { color: #8a4b00; }
 @media (prefers-color-scheme: dark) {
