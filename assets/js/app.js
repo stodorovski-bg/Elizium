@@ -266,11 +266,12 @@
         return;
       }
 
-      // Ако избере да се показва с име, но не е въвел име
-      if (visibility !== "anonymous" && (display === "name" || display === "both") && !data.name) {
+      // Изискваме име само ако изрично е избрано „Само име".
+      // При „Име + апартамент" без име се показва само адресът (без грешка).
+      if (visibility !== "anonymous" && display === "name" && !data.name) {
         var nameEl = $("#f-name");
         if (nameEl) nameEl.classList.add("is-invalid");
-        showMessage("error", "Моля, въведете име, за да се покаже в списъка — или изберете «Само апартамент».");
+        showMessage("error", "Моля, въведете име, за да се покаже в списъка — или изберете «Само блок, вход и апартамент».");
         return;
       }
 

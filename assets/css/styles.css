@@ -126,6 +126,21 @@ a { color: var(--green-600); }
 .callout--soft { border-left-color: var(--accent); }
 .callout strong { display: inline; }
 
+/* Подчертано важно съобщение */
+.callout--alert {
+  border-left: none;
+  background: linear-gradient(135deg, #fff4d6, #ffe9c7);
+  color: #6b4c00;
+  border: 1.5px solid #f2b705;
+  box-shadow: 0 6px 18px rgba(242, 183, 5, .18);
+  text-align: left;
+}
+.callout--alert strong { color: #8a4b00; }
+@media (prefers-color-scheme: dark) {
+  .callout--alert { background: linear-gradient(135deg, #3a2f10, #2f2609); color: #ffe6ad; border-color: #7a5c10; }
+  .callout--alert strong { color: #ffd98a; }
+}
+
 /* ------------------------------ Gallery --------------------------------- */
 .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
 .gallery__item { margin: 0; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); background: var(--card); }
@@ -216,6 +231,10 @@ input.is-invalid { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(192,5
 .subfield .radio { padding: 6px 0; }
 .subfield[hidden] { display: none; }
 .hint-inline { color: var(--green-600); font-style: normal; font-weight: 600; }
+
+.radio-hint {
+  margin: 2px 0 6px 30px; font-size: .82rem; color: var(--muted); line-height: 1.4;
+}
 
 .form__message { margin-top: 16px; font-weight: 600; border-radius: 10px; padding: 0; }
 .form__message.show { padding: 13px 16px; }
