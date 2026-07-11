@@ -1,5 +1,5 @@
 /* ============================================================================
-   Elizium – Дарителска кампания · логика
+   Elizium – Дарителска кампания · логика (Google Apps Script backend)
    ========================================================================== */
 (function () {
   "use strict";
@@ -8,9 +8,9 @@
   var CURRENCY = CFG.CURRENCY || "€";
   var GOAL = Number(CFG.GOAL_AMOUNT) || 0;
   var RECOMMENDED = Number(CFG.RECOMMENDED_AMOUNT) || 50;
+  var API = CFG.APPS_SCRIPT_URL || "";
 
-  var configured = !!(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
-  var sb = null;
+  var configured = !!API;
 
   // ------------------------------------------------------------------ helpers
   function $(sel, root) { return (root || document).querySelector(sel); }
@@ -18,7 +18,6 @@
 
   function fmtMoney(n) {
     n = Math.round(Number(n) || 0);
-    // Разделител за хиляди: интервал (bg локал)
     return n.toLocaleString("bg-BG") + " " + CURRENCY;
   }
 
@@ -43,11 +42,9 @@
 
   // ------------------------------------------------------------------ init UI
   function initStaticText() {
-    // Замяна на {{CURRENCY}} в етикета за сумата
     var amountLabel = $('label[for="f-amount"]');
     if (amountLabel) amountLabel.innerHTML = amountLabel.innerHTML.replace("{{CURRENCY}}", CURRENCY);
 
-    // Препоръчителна сума
     var hint = $("#hint-recommended");
     if (hint) hint.textContent = fmtMoney(RECOMMENDED);
 
@@ -55,14 +52,12 @@
     if (amountInput && !amountInput.value) amountInput.value = RECOMMENDED;
     syncChips();
 
-    // Цел
     var goalEl = $("#stat-goal");
     if (goalEl) goalEl.textContent = GOAL ? fmtMoney(GOAL) : "—";
 
     var curEl = $("#stat-currency");
     if (curEl) curEl.textContent = CURRENCY;
 
-    // Контакт във футъра
     if (CFG.CONTACT_TEXT) {
       var fc = $("#footer-contact");
       if (fc) { fc.textContent = CFG.CONTACT_TEXT; fc.hidden = false; }
@@ -161,18 +156,21 @@
   }
 
   function loadData() {
-    if (!sb) return;
+    if (!configured) return;
 
-    sb.rpc("get_campaign_stats").then(function (res) {
-      if (res.error) { console.error("stats:", res.error); return; }
-      var d = res.data || {};
-      renderStats(d.total_amount, d.participant_count);
-    });
-
-    sb.rpc("get_public_pledges").then(function (res) {
-      if (res.error) { console.error("participants:", res.error); return; }
-      renderParticipants(res.data || []);
-    });
+    fetch(API, { method: "GET" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || d.status === "error") {
+          console.error("Грешка при зареждане:", d && d.message);
+          return;
+        }
+        renderStats(d.total_amount, d.participant_count);
+        renderParticipants(d.participants || []);
+      })
+      .catch(function (err) {
+        console.error("Няма връзка при зареждане:", err);
+      });
   }
 
   // -------------------------------------------------------------------- message
@@ -223,7 +221,7 @@
         return;
       }
 
-      if (!configured || !sb) {
+      if (!configured) {
         showMessage("warn", "Порталът още не е свързан с база данни. Записването ще е достъпно след настройка (виж README.md).");
         return;
       }
@@ -233,51 +231,50 @@
       var original = btn.textContent;
       btn.textContent = "Записване…";
 
-      sb.rpc("register_pledge", {
-        p_block: data.block,
-        p_entrance: data.entrance,
-        p_apartment: data.apartment,
-        p_name: data.name,
-        p_amount: data.amount,
-        p_is_anonymous: visibility === "anonymous",
-        p_payment_method: payment,
-      }).then(function (res) {
-        btn.disabled = false;
-        btn.textContent = original;
+      // Изпращаме като text/plain, за да избегнем CORS preflight към Apps Script
+      fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          block: data.block,
+          entrance: data.entrance,
+          apartment: data.apartment,
+          name: data.name,
+          amount: data.amount,
+          is_anonymous: visibility === "anonymous",
+          payment_method: payment,
+        }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (result) {
+          btn.disabled = false;
+          btn.textContent = original;
+          result = result || {};
 
-        if (res.error) {
-          console.error(res.error);
-          showMessage("error", "Възникна грешка при записването. Моля, опитайте отново.");
-          return;
-        }
-
-        var result = res.data || {};
-        if (result.status === "ok") {
-          showMessage("ok", "Благодарим! Записването Ви е успешно. ⚽");
-          form.reset();
-          $("#f-amount").value = RECOMMENDED;
-          syncChips();
-          // Презареждаме статистиката и списъка
-          reloadAll();
-          // Плавно скролваме към статистиката
-          var stats = $("#статистика");
-          if (stats) stats.scrollIntoView({ behavior: "smooth", block: "start" });
-        } else if (result.status === "duplicate") {
-          showMessage("warn", result.message || "Този апартамент вече е регистриран в кампанията.");
-        } else {
-          showMessage("error", result.message || "Данните не са валидни. Моля, проверете полетата.");
-        }
-      }).catch(function (err) {
-        btn.disabled = false;
-        btn.textContent = original;
-        console.error(err);
-        showMessage("error", "Няма връзка със сървъра. Проверете интернет връзката и опитайте отново.");
-      });
+          if (result.status === "ok") {
+            showMessage("ok", "Благодарим! Записването Ви е успешно. ⚽");
+            form.reset();
+            $("#f-amount").value = RECOMMENDED;
+            syncChips();
+            reloadAll();
+            var stats = $("#статистика");
+            if (stats) stats.scrollIntoView({ behavior: "smooth", block: "start" });
+          } else if (result.status === "duplicate") {
+            showMessage("warn", result.message || "Този апартамент вече е регистриран в кампанията.");
+          } else {
+            showMessage("error", result.message || "Данните не са валидни. Моля, проверете полетата.");
+          }
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          btn.textContent = original;
+          console.error(err);
+          showMessage("error", "Няма връзка със сървъра. Проверете интернет връзката и опитайте отново.");
+        });
     });
   }
 
   function reloadAll() {
-    // Изчистваме списъка преди презареждане
     var list = $("#participants-list");
     if (list) list.innerHTML = "";
     loadData();
@@ -289,11 +286,9 @@
     initChips();
     initForm();
 
-    if (configured && window.supabase && window.supabase.createClient) {
-      sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+    if (configured) {
       loadData();
     } else {
-      // Показваме банер за настройка и нулева статистика
       renderStats(0, 0);
       var banner = $("#setup-banner");
       if (banner) banner.hidden = false;
