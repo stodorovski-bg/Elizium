@@ -62,10 +62,11 @@ function doGet(e) {
 
     for (var i = 1; i < values.length; i++) {
       var row = values[i];
-      // Прескачаме напълно празни редове
-      if (!String(row[1]).trim() && !String(row[3]).trim()) continue;
+      // Броим само истински записи: сумата трябва да е валидно число > 0.
+      // Така прескачаме заглавни, празни или ръчно объркани редове.
+      var amount = Number(row[5]);
+      if (!isFinite(amount) || amount <= 0) continue;
 
-      var amount = Number(row[5]) || 0;
       total += amount;
       count += 1;
 
