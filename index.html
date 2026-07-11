@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Заедно за нашето игрище · Elizium</title>
+  <meta name="description" content="Доброволна дарителска кампания за ремонт на футболното игрище в комплекс Elizium. Запишете се и вижте колко сме заедно." />
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+
+  <!-- ======================= HERO ======================= -->
+  <header class="hero">
+    <div class="hero__inner">
+      <span class="hero__badge">⚽ Инициатива на съседите · Elizium</span>
+      <h1 class="hero__title">Заедно за нашето игрище</h1>
+      <p class="hero__subtitle">
+        Футболното игрище е гордостта на комплекса, но има спешна нужда от ремонт.
+        Ако сме заедно, можем да го върнем в перфектно състояние.
+      </p>
+      <a class="btn btn--primary hero__cta" href="#форма">Искам да участвам</a>
+      <a class="btn btn--ghost hero__cta" href="#целта">Разбери повече</a>
+    </div>
+    <div class="hero__wave" aria-hidden="true"></div>
+  </header>
+
+  <main>
+
+    <!-- ======================= ЦЕЛТА ======================= -->
+    <section id="целта" class="section">
+      <div class="container">
+        <h2 class="section__title">Каква е целта?</h2>
+        <div class="prose">
+          <p>
+            Живеем в затворен комплекс с нещо, с което малко комплекси могат да се похвалят —
+            собствено футболно игрище. За съжаление то е в окаяно състояние и се нуждае
+            спешно от ремонт. Оценката за възстановяването му е
+            <strong>10 000 – 12 000 €</strong>. Средствата от поддръжката не достигат
+            за такъв ремонт.
+          </p>
+          <p>
+            Група съседи решихме да съберем средства на доброволен принцип от всички,
+            които биха желали да помогнат. <strong>Препоръчителната сума за участие е 50 €</strong>,
+            но всеки може да заяви толкова, колкото прецени.
+          </p>
+          <p>
+            Ако се съберат повече средства от необходимото, остатъкът може да бъде
+            инвестиран в <strong>подобрение на видеонаблюдението</strong> в комплекса.
+          </p>
+        </div>
+
+        <div class="callout callout--info">
+          <strong>Важно — това е проучване.</strong>
+          На този етап събираме информация само за да преценим колко съседи биха се
+          включили и каква сума бихме могли да съберем. <em>Все още не се събират пари.</em>
+        </div>
+
+        <div class="callout callout--soft">
+          <strong>Гаранция за връщане на средствата.</strong>
+          Ако заявената сума е достатъчна, но при реалното събиране голяма част от
+          съседите се откажат и идеята не се осъществи, внесените средства ще бъдат
+          върнати на всеки платил в същия размер.
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= ГАЛЕРИЯ ======================= -->
+    <section class="section section--tint">
+      <div class="container">
+        <h2 class="section__title">Състоянието днес</h2>
+        <p class="section__lead">Няколко снимки на игрището към момента.</p>
+        <div class="gallery" id="галерия">
+          <figure class="gallery__item">
+            <img src="assets/img/pitch-1.jpg" alt="Футболното игрище" loading="lazy"
+                 onerror="this.onerror=null;this.src='assets/img/placeholder.svg';this.classList.add('is-placeholder')" />
+          </figure>
+          <figure class="gallery__item">
+            <img src="assets/img/pitch-2.jpg" alt="Футболното игрище" loading="lazy"
+                 onerror="this.onerror=null;this.src='assets/img/placeholder.svg';this.classList.add('is-placeholder')" />
+          </figure>
+          <figure class="gallery__item">
+            <img src="assets/img/pitch-3.jpg" alt="Футболното игрище" loading="lazy"
+                 onerror="this.onerror=null;this.src='assets/img/placeholder.svg';this.classList.add('is-placeholder')" />
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= ПРОГРЕС / СТАТИСТИКА ======================= -->
+    <section class="section" id="статистика">
+      <div class="container">
+        <h2 class="section__title">Докъде сме?</h2>
+        <p class="section__lead">
+          Сумата по-долу показва колко бихме събрали, <em>ако</em> всички записали се
+          съседи внесат заявените суми.
+        </p>
+
+        <div class="stats-card">
+          <div class="stats-card__head">
+            <div class="stats-card__amount">
+              <span class="stats-card__value" id="stat-total" data-target="0">0</span>
+              <span class="stats-card__currency" id="stat-currency">€</span>
+            </div>
+            <div class="stats-card__goal">
+              от цел <strong id="stat-goal">—</strong>
+            </div>
+          </div>
+
+          <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress">
+            <div class="progress__bar" id="progress-bar" style="width:0%"></div>
+            <span class="progress__label" id="progress-label">0%</span>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat">
+              <span class="stat__value" id="stat-count" data-target="0">0</span>
+              <span class="stat__label">записали се съседи</span>
+            </div>
+            <div class="stat">
+              <span class="stat__value" id="stat-avg" data-target="0">0</span>
+              <span class="stat__label">средна сума</span>
+            </div>
+            <div class="stat">
+              <span class="stat__value" id="stat-remaining" data-target="0">0</span>
+              <span class="stat__label">остават до целта</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= ФОРМА ======================= -->
+    <section class="section section--tint" id="форма">
+      <div class="container container--narrow">
+        <h2 class="section__title">Запишете се</h2>
+        <p class="section__lead">
+          Един апартамент се записва веднъж. Данните за блок, вход и апартамент
+          служат само за да избегнем двойни записвания.
+        </p>
+
+        <form class="form" id="pledge-form" novalidate>
+          <div class="form__row form__row--three">
+            <div class="field">
+              <label for="f-block">Блок <span class="req">*</span></label>
+              <input id="f-block" name="block" type="text" autocomplete="off" required placeholder="напр. 1" />
+            </div>
+            <div class="field">
+              <label for="f-entrance">Вход <span class="req">*</span></label>
+              <input id="f-entrance" name="entrance" type="text" autocomplete="off" required placeholder="напр. А" />
+            </div>
+            <div class="field">
+              <label for="f-apartment">Апартамент <span class="req">*</span></label>
+              <input id="f-apartment" name="apartment" type="text" autocomplete="off" required placeholder="напр. 12" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="f-name">Име <span class="opt">(по избор)</span></label>
+            <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Как да Ви покажем в списъка" />
+          </div>
+
+          <div class="field">
+            <label for="f-amount">Сума за участие ({{CURRENCY}}) <span class="req">*</span></label>
+            <input id="f-amount" name="amount" type="number" min="1" step="1" required />
+            <div class="chips" id="amount-chips">
+              <button type="button" class="chip" data-amount="20">20 €</button>
+              <button type="button" class="chip" data-amount="50">50 €</button>
+              <button type="button" class="chip" data-amount="100">100 €</button>
+              <button type="button" class="chip" data-amount="200">200 €</button>
+            </div>
+            <p class="field__hint">Препоръчителна сума: <strong id="hint-recommended">50 €</strong></p>
+          </div>
+
+          <fieldset class="field">
+            <legend>Видимост в списъка на участниците</legend>
+            <label class="radio">
+              <input type="radio" name="visibility" value="public" checked />
+              <span>Покажи ме в списъка на съседите, които участват</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="visibility" value="anonymous" />
+              <span>Искам да остана анонимен/на</span>
+            </label>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>Ако се стигне до събиране, предпочитам <span class="opt">(по избор)</span></legend>
+            <label class="radio">
+              <input type="radio" name="payment" value="revolut" />
+              <span>Revolut</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="payment" value="cash" />
+              <span>Лично, в брой, на представител</span>
+            </label>
+          </fieldset>
+
+          <button type="submit" class="btn btn--primary btn--block" id="submit-btn">
+            Записване
+          </button>
+
+          <div class="form__message" id="form-message" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ======================= УЧАСТНИЦИ ======================= -->
+    <section class="section" id="участници">
+      <div class="container container--narrow">
+        <h2 class="section__title">Съседи, които вече участват</h2>
+        <p class="section__lead">Благодарим на всички, които се включиха! 🙌</p>
+        <ul class="participants" id="participants-list">
+          <li class="participants__empty" id="participants-empty">
+            Все още няма публични записвания. Бъдете първи!
+          </li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================= ФУТЪР ======================= -->
+  <footer class="footer">
+    <div class="container">
+      <p>
+        Тази страница е доброволна инициатива на съседи от комплекс Elizium
+        с цел проучване на интереса. Събраната информация се използва единствено
+        за преценка на кампанията.
+      </p>
+      <p class="footer__contact" id="footer-contact" hidden></p>
+    </div>
+  </footer>
+
+  <!-- Банер при липсваща конфигурация (показва се само ако Supabase не е свързан) -->
+  <div class="setup-banner" id="setup-banner" hidden>
+    ⚙️ Порталът още не е свързан с база данни. Виж <code>README.md</code> за настройка.
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
