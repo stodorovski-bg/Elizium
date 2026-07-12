@@ -208,13 +208,38 @@
     var remaining = Math.max(GOAL - total, 0);
     animateCount($("#stat-remaining"), remaining, function (n) { return fmtMoney(n); });
 
-    var pct = GOAL > 0 ? Math.min((total / GOAL) * 100, 100) : 0;
     var bar = $("#progress-bar");
+    var overflowBar = $("#progress-overflow");
     var label = $("#progress-label");
     var prog = $("#progress");
-    if (bar) requestAnimationFrame(function () { bar.style.width = pct.toFixed(1) + "%"; });
-    if (label) label.textContent = Math.round(pct) + "%";
-    if (prog) prog.setAttribute("aria-valuenow", String(Math.round(pct)));
+    var overflowText = $("#stat-overflow");
+
+    // При надхвърляне на целта лентата се разделя: зелено = целта, синьо = излишъкът
+    var pctOfGoal = 0, greenPct = 0, bluePct = 0;
+    if (GOAL > 0) {
+      pctOfGoal = (total / GOAL) * 100;
+      if (total > GOAL) {
+        greenPct = (GOAL / total) * 100;
+        bluePct = 100 - greenPct;
+      } else {
+        greenPct = pctOfGoal;
+        bluePct = 0;
+      }
+    }
+
+    if (bar) requestAnimationFrame(function () { bar.style.width = greenPct.toFixed(1) + "%"; });
+    if (overflowBar) requestAnimationFrame(function () { overflowBar.style.width = bluePct.toFixed(1) + "%"; });
+    if (label) label.textContent = Math.round(pctOfGoal) + "%";
+    if (prog) prog.setAttribute("aria-valuenow", String(Math.min(100, Math.round(pctOfGoal))));
+
+    if (overflowText) {
+      if (total > GOAL) {
+        overflowText.textContent = "+ " + fmtMoney(total - GOAL) + " над целта";
+        overflowText.hidden = false;
+      } else {
+        overflowText.hidden = true;
+      }
+    }
   }
 
   function initials(name) {
