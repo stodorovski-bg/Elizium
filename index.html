@@ -72,8 +72,40 @@
           Участието не е задължително — то е изцяло доброволно. Разчитаме на честност:
           моля, посочвайте само суми, които реално бихте могли да отделите. Не е нужно
           да обещавате суми с цел показност — това само би объркало сметките и реалната
-          преценка на кампанията.
+          преценка на кампанията. Може да изберете анонимност или сами да решите какво
+          да се показва за Вас в „Съседи, които вече участват".
         </div>
+      </div>
+    </section>
+
+    <!-- ======================= ОБХВАТ / РЕАКЦИИ ======================= -->
+    <section class="section" id="обхват">
+      <div class="container">
+        <h2 class="section__title">Докъде стигна инициативата?</h2>
+        <p class="section__lead">
+          Помогнете ни да разберем колко съседи е достигнала идеята — независимо
+          дали я подкрепят, или не. Един глас на съсед.
+        </p>
+
+        <div class="reactions">
+          <div class="reaction">
+            <span class="reaction__count" id="react-participants" data-target="0">0</span>
+            <span class="reaction__title reaction__title--static">Заявили участие</span>
+            <span class="reaction__desc">Броят на записалите се съседи.</span>
+          </div>
+          <div class="reaction">
+            <span class="reaction__count" id="react-neutral" data-target="0">0</span>
+            <button type="button" class="reaction__btn" data-vote="neutral">Не искам да участвам</button>
+            <span class="reaction__desc">Нямам против, но няма да се включа.</span>
+          </div>
+          <div class="reaction">
+            <span class="reaction__count" id="react-against" data-target="0">0</span>
+            <button type="button" class="reaction__btn" data-vote="against">Не подкрепям</button>
+            <span class="reaction__desc">Твърдо съм против подобна инициатива.</span>
+          </div>
+        </div>
+
+        <p class="reactions__note" id="reactions-note" hidden>Благодарим за мнението Ви! Отчетохме избора Ви. 🙌</p>
       </div>
     </section>
 

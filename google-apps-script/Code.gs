@@ -25,6 +25,9 @@
 var SHEET_NAME = 'Записвания';
 var HEADERS = ['Дата', 'Блок', 'Вход', 'Апартамент', 'Име', 'Сума', 'Анонимно', 'Плащане', 'Показване', 'Сума видима'];
 
+var REACTIONS_SHEET = 'Реакции';
+var REACTIONS_HEADERS = ['Дата', 'Тип'];
+
 /** Връща (и при нужда създава) листа със записванията. */
 function getSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -37,6 +40,21 @@ function getSheet_() {
   }
   // Поддържаме заглавния ред актуален (напр. при добавена нова колона)
   sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
+  sheet.setFrozenRows(1);
+  return sheet;
+}
+
+/** Връща (и при нужда създава) листа с реакциите (гласовете). */
+function getReactionsSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(REACTIONS_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(REACTIONS_SHEET);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(REACTIONS_HEADERS);
+  }
+  sheet.getRange(1, 1, 1, REACTIONS_HEADERS.length).setValues([REACTIONS_HEADERS]).setFontWeight('bold');
   sheet.setFrozenRows(1);
   return sheet;
 }
@@ -122,10 +140,22 @@ function doGet(e) {
     }
 
     participants.reverse(); // най-новите най-отгоре
+
+    // Броене на реакциите (гласовете)
+    var against = 0, neutral = 0;
+    var rsheet = getReactionsSheet_();
+    var rvals = rsheet.getDataRange().getValues();
+    for (var r = 1; r < rvals.length; r++) {
+      var t = String(rvals[r][1] || '').trim().toLowerCase();
+      if (t === 'against') against += 1;
+      else if (t === 'neutral') neutral += 1;
+    }
+
     return jsonOut_({
       total_amount: total,
       participant_count: count,
-      participants: participants
+      participants: participants,
+      reactions: { against: against, neutral: neutral }
     });
   } catch (err) {
     return jsonOut_({ status: 'error', message: String(err) });
@@ -144,6 +174,16 @@ function doPost(e) {
 
   try {
     var data = JSON.parse(e.postData.contents);
+
+    // Гласуване за реакция (Не подкрепям / Не искам да участвам)
+    if (data.action === 'vote') {
+      var vtype = String(data.vote_type || '').trim().toLowerCase();
+      if (vtype !== 'against' && vtype !== 'neutral') {
+        return jsonOut_({ status: 'error', message: 'Невалиден тип реакция.' });
+      }
+      getReactionsSheet_().appendRow([new Date(), vtype]);
+      return jsonOut_({ status: 'ok' });
+    }
 
     var block     = String(data.block || '').trim();
     var entrance  = String(data.entrance || '').trim();

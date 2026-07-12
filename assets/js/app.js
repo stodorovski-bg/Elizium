@@ -49,10 +49,15 @@
 
   function animateCount(el, to, formatter) {
     if (!el) return;
+    // Токен: ако стартира нова анимация (или директно се зададе стойност),
+    // старата се отменя, за да не презаписва по-новата стойност.
+    var token = (el._animToken || 0) + 1;
+    el._animToken = token;
     var from = 0;
     var start = null;
     var dur = 1100;
     function step(ts) {
+      if (el._animToken !== token) return; // отменена
       if (start === null) start = ts;
       var p = Math.min((ts - start) / dur, 1);
       var eased = 1 - Math.pow(1 - p, 3);
@@ -60,6 +65,13 @@
       if (p < 1) requestAnimationFrame(step);
     }
     requestAnimationFrame(step);
+  }
+
+  // Задава стойност директно и отменя всяка текуща анимация за елемента
+  function setCountNow(el, value) {
+    if (!el) return;
+    el._animToken = (el._animToken || 0) + 1;
+    el.textContent = fmtNumber(value);
   }
 
   // ------------------------------------------------------------------ init UI
@@ -242,6 +254,58 @@
     }
   }
 
+  // --------------------------------------------------------------- reactions
+  var VOTE_KEY = "elizium_reaction_v1";
+  var reactionCounts = { against: 0, neutral: 0, participants: 0 };
+
+  function renderReactions(reactions, participantCount) {
+    reactions = reactions || {};
+    reactionCounts.against = Number(reactions.against) || 0;
+    reactionCounts.neutral = Number(reactions.neutral) || 0;
+    reactionCounts.participants = Number(participantCount) || 0;
+    animateCount($("#react-participants"), reactionCounts.participants, function (n) { return fmtNumber(n); });
+    animateCount($("#react-neutral"), reactionCounts.neutral, function (n) { return fmtNumber(n); });
+    animateCount($("#react-against"), reactionCounts.against, function (n) { return fmtNumber(n); });
+  }
+
+  function markVoted(type) {
+    $all(".reaction__btn").forEach(function (b) {
+      b.disabled = true;
+      if (b.getAttribute("data-vote") === type) b.classList.add("is-chosen");
+    });
+    var note = $("#reactions-note");
+    if (note) note.hidden = false;
+  }
+
+  function castVote(type) {
+    if (type !== "against" && type !== "neutral") return;
+    var already = null;
+    try { already = localStorage.getItem(VOTE_KEY); } catch (e) {}
+    if (already) return; // от този браузър вече е гласувано
+    try { localStorage.setItem(VOTE_KEY, type); } catch (e) {}
+
+    // Оптимистично обновяване на брояча (отменя текуща анимация)
+    reactionCounts[type] = (reactionCounts[type] || 0) + 1;
+    setCountNow($(type === "against" ? "#react-against" : "#react-neutral"), reactionCounts[type]);
+    markVoted(type);
+
+    if (!configured) return;
+    fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "vote", vote_type: type }),
+    }).catch(function (err) { console.error("Грешка при гласуване:", err); });
+  }
+
+  function initReactions() {
+    $all(".reaction__btn").forEach(function (b) {
+      b.addEventListener("click", function () { castVote(b.getAttribute("data-vote")); });
+    });
+    var voted = null;
+    try { voted = localStorage.getItem(VOTE_KEY); } catch (e) {}
+    if (voted) markVoted(voted);
+  }
+
   function initials(name) {
     var parts = String(name).trim().split(/\s+/).filter(function (w) {
       return /^\p{L}/u.test(w); // само думи, започващи с буква (пропуска „·", числа и т.н.)
@@ -306,6 +370,7 @@
         }
         renderStats(d.total_amount, d.participant_count);
         renderParticipants(d.participants || []);
+        renderReactions(d.reactions, d.participant_count);
       })
       .catch(function (err) {
         console.error("Няма връзка при зареждане:", err);
@@ -454,6 +519,7 @@
     initStaticText();
     initChips();
     initDisplayOptions();
+    initReactions();
     initForm();
 
     if (configured) {
