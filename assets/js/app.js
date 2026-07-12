@@ -361,7 +361,7 @@
   function loadData() {
     if (!configured) return;
 
-    fetch(API, { method: "GET" })
+    fetch(API, { method: "GET", cache: "no-store" })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (!d || d.status === "error") {

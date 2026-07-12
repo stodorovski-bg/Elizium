@@ -25,8 +25,10 @@
 var SHEET_NAME = 'Записвания';
 var HEADERS = ['Дата', 'Блок', 'Вход', 'Апартамент', 'Име', 'Сума', 'Анонимно', 'Плащане', 'Показване', 'Сума видима'];
 
-var REACTIONS_SHEET = 'Реакции';
-var REACTIONS_HEADERS = ['Дата', 'Тип'];
+// Броячи за реакциите (в листа „Записвания"):
+//   K2 = „Не искам да участвам" (neutral), L2 = „Не подкрепям" (against)
+var CELL_NEUTRAL = 'K2';
+var CELL_AGAINST = 'L2';
 
 /** Връща (и при нужда създава) листа със записванията. */
 function getSheet_() {
@@ -41,21 +43,13 @@ function getSheet_() {
   // Поддържаме заглавния ред актуален (напр. при добавена нова колона)
   sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
   sheet.setFrozenRows(1);
-  return sheet;
-}
 
-/** Връща (и при нужда създава) листа с реакциите (гласовете). */
-function getReactionsSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(REACTIONS_SHEET);
-  if (!sheet) {
-    sheet = ss.insertSheet(REACTIONS_SHEET);
-  }
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(REACTIONS_HEADERS);
-  }
-  sheet.getRange(1, 1, 1, REACTIONS_HEADERS.length).setValues([REACTIONS_HEADERS]).setFontWeight('bold');
-  sheet.setFrozenRows(1);
+  // Броячи за реакциите – етикети (K1/L1) и начални стойности (K2/L2)
+  if (sheet.getRange('K1').getValue() === '') sheet.getRange('K1').setValue('Не искам да участвам').setFontWeight('bold');
+  if (sheet.getRange('L1').getValue() === '') sheet.getRange('L1').setValue('Не подкрепям').setFontWeight('bold');
+  if (sheet.getRange(CELL_NEUTRAL).getValue() === '') sheet.getRange(CELL_NEUTRAL).setValue(0);
+  if (sheet.getRange(CELL_AGAINST).getValue() === '') sheet.getRange(CELL_AGAINST).setValue(0);
+
   return sheet;
 }
 
@@ -141,15 +135,9 @@ function doGet(e) {
 
     participants.reverse(); // най-новите най-отгоре
 
-    // Броене на реакциите (гласовете)
-    var against = 0, neutral = 0;
-    var rsheet = getReactionsSheet_();
-    var rvals = rsheet.getDataRange().getValues();
-    for (var r = 1; r < rvals.length; r++) {
-      var t = String(rvals[r][1] || '').trim().toLowerCase();
-      if (t === 'against') against += 1;
-      else if (t === 'neutral') neutral += 1;
-    }
+    // Броячи за реакциите (клетки K2/L2 в листа „Записвания")
+    var neutral = Number(sheet.getRange(CELL_NEUTRAL).getValue()) || 0;
+    var against = Number(sheet.getRange(CELL_AGAINST).getValue()) || 0;
 
     return jsonOut_({
       total_amount: total,
@@ -181,7 +169,10 @@ function doPost(e) {
       if (vtype !== 'against' && vtype !== 'neutral') {
         return jsonOut_({ status: 'error', message: 'Невалиден тип реакция.' });
       }
-      getReactionsSheet_().appendRow([new Date(), vtype]);
+      var vsheet = getSheet_();
+      var vcell = (vtype === 'neutral') ? CELL_NEUTRAL : CELL_AGAINST;
+      var cur = Number(vsheet.getRange(vcell).getValue()) || 0;
+      vsheet.getRange(vcell).setValue(cur + 1);
       return jsonOut_({ status: 'ok' });
     }
 
