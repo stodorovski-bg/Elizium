@@ -8,6 +8,9 @@
   var CURRENCY = CFG.CURRENCY || "€";
   var GOAL = Number(CFG.GOAL_AMOUNT) || 0;
   var RECOMMENDED = Number(CFG.RECOMMENDED_AMOUNT) || 50;
+  var CONFIRM_ABOVE = Number(CFG.CONFIRM_ABOVE);
+  if (!isFinite(CONFIRM_ABOVE) || CONFIRM_ABOVE < 0) CONFIRM_ABOVE = 100;
+  var BLOCKS = Array.isArray(CFG.BLOCKS) ? CFG.BLOCKS : [];
   var API = CFG.APPS_SCRIPT_URL || "";
 
   var configured = !!API;
@@ -50,6 +53,17 @@
 
   // ------------------------------------------------------------------ init UI
   function initStaticText() {
+    // Попълваме валидните блокове в падащото меню
+    var blockSelect = $("#f-block");
+    if (blockSelect && BLOCKS.length) {
+      BLOCKS.forEach(function (b) {
+        var opt = document.createElement("option");
+        opt.value = String(b);
+        opt.textContent = String(b);
+        blockSelect.appendChild(opt);
+      });
+    }
+
     var amountLabel = $('label[for="f-amount"]');
     if (amountLabel) amountLabel.innerHTML = amountLabel.innerHTML.replace("{{CURRENCY}}", CURRENCY);
 
@@ -285,7 +299,7 @@
       }
 
       // Потвърждение при по-голяма сума – предпазва от случайно въвеждане
-      if (data.amount > 100) {
+      if (data.amount > CONFIRM_ABOVE) {
         var confirmed = window.confirm(
           "Въвеждате сума от " + fmtMoney(data.amount) + ".\n\n" +
           "Сигурни ли сте, че сумата е правилна?"
