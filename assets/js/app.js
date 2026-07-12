@@ -10,7 +10,18 @@
   var RECOMMENDED = Number(CFG.RECOMMENDED_AMOUNT) || 50;
   var CONFIRM_ABOVE = Number(CFG.CONFIRM_ABOVE);
   if (!isFinite(CONFIRM_ABOVE) || CONFIRM_ABOVE < 0) CONFIRM_ABOVE = 100;
-  var BLOCKS = Array.isArray(CFG.BLOCKS) ? CFG.BLOCKS : [];
+  // BLOCKS може да е масив (само блокове) или обект { блок: [входове] }
+  var BLOCK_LIST, ENTRANCES_BY_BLOCK;
+  if (Array.isArray(CFG.BLOCKS)) {
+    BLOCK_LIST = CFG.BLOCKS.map(String);
+    ENTRANCES_BY_BLOCK = {};
+  } else if (CFG.BLOCKS && typeof CFG.BLOCKS === "object") {
+    BLOCK_LIST = Object.keys(CFG.BLOCKS);
+    ENTRANCES_BY_BLOCK = CFG.BLOCKS;
+  } else {
+    BLOCK_LIST = [];
+    ENTRANCES_BY_BLOCK = {};
+  }
   var API = CFG.APPS_SCRIPT_URL || "";
 
   var configured = !!API;
@@ -55,14 +66,15 @@
   function initStaticText() {
     // Попълваме валидните блокове в падащото меню
     var blockSelect = $("#f-block");
-    if (blockSelect && BLOCKS.length) {
-      BLOCKS.forEach(function (b) {
+    if (blockSelect && BLOCK_LIST.length) {
+      BLOCK_LIST.forEach(function (b) {
         var opt = document.createElement("option");
         opt.value = String(b);
         opt.textContent = String(b);
         blockSelect.appendChild(opt);
       });
     }
+    refreshEntranceOptions();
 
     var amountLabel = $('label[for="f-amount"]');
     if (amountLabel) amountLabel.innerHTML = amountLabel.innerHTML.replace("{{CURRENCY}}", CURRENCY);
@@ -84,6 +96,34 @@
       var fc = $("#footer-contact");
       if (fc) { fc.textContent = CFG.CONTACT_TEXT; fc.hidden = false; }
     }
+  }
+
+  // Обновява входовете според избрания блок (каскадно падащо меню)
+  function refreshEntranceOptions() {
+    var blockSel = $("#f-block");
+    var entSel = $("#f-entrance");
+    if (!blockSel || !entSel) return;
+
+    var block = blockSel.value;
+    var list = ENTRANCES_BY_BLOCK[block] || [];
+
+    entSel.innerHTML = "";
+    var ph = document.createElement("option");
+    ph.value = "";
+    ph.disabled = true;
+    ph.selected = true;
+    ph.textContent = block ? "Изберете" : "Първо блок";
+    entSel.appendChild(ph);
+
+    list.forEach(function (en) {
+      var opt = document.createElement("option");
+      opt.value = String(en);
+      opt.textContent = String(en);
+      entSel.appendChild(opt);
+    });
+
+    entSel.disabled = !block || !list.length;
+    entSel.classList.remove("is-invalid");
   }
 
   // --------------------------------------------------------------- amount chips
@@ -136,7 +176,16 @@
   function initDisplayOptions() {
     ["f-block", "f-entrance", "f-apartment"].forEach(function (id) {
       var el = $("#" + id);
-      if (el) el.addEventListener("input", updateAptPreview);
+      if (el) {
+        el.addEventListener("input", updateAptPreview);
+        el.addEventListener("change", updateAptPreview);
+      }
+    });
+    // При смяна на блок обновяваме входовете (каскадно)
+    var blockSel = $("#f-block");
+    if (blockSel) blockSel.addEventListener("change", function () {
+      refreshEntranceOptions();
+      updateAptPreview();
     });
     $all('input[name="visibility"]').forEach(function (r) {
       r.addEventListener("change", toggleDisplayOptions);
@@ -348,6 +397,7 @@
             form.reset();
             $("#f-amount").value = RECOMMENDED;
             syncChips();
+            refreshEntranceOptions();
             updateAptPreview();
             toggleDisplayOptions();
             reloadAll();
