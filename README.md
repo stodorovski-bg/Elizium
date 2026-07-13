@@ -79,6 +79,7 @@ window.ELIZIUM_CONFIG = {
 assets/img/pitch-1.jpg
 assets/img/pitch-2.jpg
 assets/img/pitch-3.jpg
+assets/img/pitch-4.jpg
 ```
 
 Докато липсват, се показва примерна графика.
