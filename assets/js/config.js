@@ -9,7 +9,7 @@ window.ELIZIUM_CONFIG = {
   // --- Връзка към Google Apps Script ----------------------------------------
   // Това е адресът "Web app URL", който получавате при внедряване (Deploy)
   // на скрипта. Пример: https://script.google.com/macros/s/AKfy.../exec
-  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbw1AB2aYc0SVERjvL8m805XzROlP32LJy9-huHMjmsMW9Qj8gAQdeWk21YRIhV_B0To/exec",
+  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxbR3tOeZpbx2qVS0E2z8Y-V0nVX77DZjz0m5K7sy4RuVxl5cgi-mtbDBTQIDbeq_fB/exec",
 
   // --- Параметри на кампанията ----------------------------------------------
   // Целева сума за ремонта (в евро). Според оценката 10 000 – 12 000 €.
