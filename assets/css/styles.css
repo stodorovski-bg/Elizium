@@ -167,6 +167,7 @@ a { color: var(--green-600); }
 .stats-card__currency { font-size: 1.8rem; font-weight: 700; color: var(--green-600); }
 .stats-card__goal { color: var(--muted); font-size: 1.05rem; }
 .stats-card__overflow { color: var(--blue-500); font-weight: 700; display: inline-block; }
+.stats-card__overflow[hidden] { display: none; }
 .stats-card__overflow::before { content: "· "; color: var(--muted); font-weight: 400; }
 
 .progress {
@@ -193,6 +194,15 @@ a { color: var(--green-600); }
 .stat { padding: 12px; border-radius: 12px; background: var(--bg); }
 .stat__value { display: block; font-size: 1.6rem; font-weight: 800; color: var(--ink); }
 .stat__label { font-size: .85rem; color: var(--muted); }
+
+/* Откроена секция за събраната сума – да не се слива с фона */
+#статистика {
+  background:
+    radial-gradient(900px 400px at 85% -20%, rgba(52,193,125,.35), transparent 60%),
+    linear-gradient(160deg, var(--green-900), var(--green-700));
+}
+#статистика .section__title { color: #fff; }
+#статистика .section__lead { color: rgba(255, 255, 255, .9); }
 
 /* ------------------------------ Reactions ------------------------------- */
 .reactions {
