@@ -494,7 +494,7 @@
             var stats = $("#статистика");
             if (stats) stats.scrollIntoView({ behavior: "smooth", block: "start" });
           } else if (result.status === "duplicate") {
-            showMessage("warn", result.message || "Този апартамент вече е регистриран в кампанията.");
+            showMessage("warn", "Този апартамент вече е регистриран в кампанията.\nПроверете дали друг член на семейството или живущ вече не го е направил.");
           } else {
             showMessage("error", result.message || "Данните не са валидни. Моля, проверете полетата.");
           }
